@@ -1,0 +1,88 @@
+package com.fares.homeplus;
+
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
+import android.widget.Toast;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+/*
+
+// Example Send text over wifi
+
+
+SendText ST = new SendText(getApplicationContext());
+ST.execute(String.valueOf(progressvalue), RecieverIP, RecieverPort);
+
+*/
+
+class SendText extends AsyncTask<String, Void, Void> {
+
+    private Context context;
+
+    SendText(Context context) {
+        this.context = context;
+    }
+
+    @Override
+    protected Void doInBackground(String... strings) {
+
+        this.sendThroughSocket(strings[0], strings[1], Integer.valueOf(strings[2]));
+        return null;
+    }
+
+    //From the java docs, slightly modified
+    private Void sendThroughSocket(String s, String host, int port) {
+        Log.d("E", "In send through  socket");
+        final String hostName = host;//Host is the address of the receiver, can be IP or domain
+        int portNumber = port;
+        //Check if device is connected to internet
+
+        try {
+            Socket clientsocket = new Socket(hostName, portNumber); //one of 2-way point communication
+            Log.d("E", "Created Socket: ");
+            DataOutputStream DOS = new DataOutputStream(clientsocket.getOutputStream());
+            if (clientsocket.isConnected()) {
+                Log.d("E", " #fares Socket connected");
+
+            }
+            Log.d("E", "#utf=" + s);
+            DOS.writeUTF(s);
+
+            //clientsocket.close();
+        } catch (UnknownHostException e) {
+            Log.d("E", "#Fares error:" + e.getMessage() + " " + e.getStackTrace());
+            System.err.println("Don't know about host " + hostName);
+            new Runnable() {
+                public void run() {
+                    Toast.makeText(context, "Don't know about host " + hostName, Toast.LENGTH_SHORT).show();
+                }
+            };
+
+        } catch (IOException e) {
+            Log.d("E", "#Fares error:" + e.getMessage() + " " + e.getStackTrace());
+            System.err.println("Couldn't get I/O for the connection to " + hostName);
+            //Toast can not be run using asynctask since it acesses UI
+            new Runnable() {
+                public void run() {
+                    Toast.makeText(context, "Couldn't get I/O for the connection to " + hostName + " , check the port", Toast.LENGTH_SHORT).show();
+                }
+            };
+
+        } catch (Exception e) {
+            Log.d("E", "#fares error" + e.getClass().getName().toString());
+            Log.d("E", "#Fares error:" + e.getMessage() + " " + e.getStackTrace());
+
+        }
+
+        return null;
+    }
+
+}
+
+
+
